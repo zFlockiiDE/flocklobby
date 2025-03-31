@@ -44,6 +44,7 @@ public final class PlayerListener implements Listener {
 
 		int year = Calendar.getInstance().get(Calendar.YEAR);
 
+		player.getInventory().clear();
 		player.setGameMode(GameMode.ADVENTURE);
 		player.setHealthScale(20);
 		player.setLevel(year);
