@@ -11,7 +11,7 @@
 
 <h2>🛡️ License:</h2>
 
-This project is licensed under the [CC BY-NC-ND 4.0](LICENSE.md) license.
+This project is licensed under the [CC BY-ND 4.0](LICENSE.md) license.
 
 <h2>💖 Like my work?</h2>
 
