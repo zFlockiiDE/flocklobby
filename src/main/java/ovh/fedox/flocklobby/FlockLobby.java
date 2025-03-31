@@ -3,6 +3,7 @@ package ovh.fedox.flocklobby;
 
 import org.mineacademy.fo.Common;
 import org.mineacademy.fo.plugin.SimplePlugin;
+import ovh.fedox.flocklobby.task.LobbyWorldTask;
 import ovh.fedox.flocklobby.util.FlockLeaderboard;
 
 /**
@@ -42,6 +43,7 @@ public final class FlockLobby extends SimplePlugin {
 		FlockLeaderboard.createLeaderboard();
 
 		Common.runTimerAsync(20, 20 * 60 * 5, FlockLeaderboard::updateLeaderboard);
+		Common.runLaterAsync(20 * 60 * 5, new LobbyWorldTask());
 	}
 
 	/**
