@@ -1,0 +1,138 @@
+Commands:
+  Error: '&4&lOups! &cDer Befehl ist fehlgeschlagen :( Überprüfe die Konsole und melde den Fehler.'
+  Header_No_Subcommands: '&cEs gibt keine Argumente für diesen Befehl.'
+  Header_No_Subcommands_Permission: '&cDu hast keine Berechtigung, um Unterbefehle anzuzeigen.'
+  Header_Color: GREEN
+  Header_Secondary_Color: RED
+  Header_Format: |-
+    &r
+    {theme_color}&m<center>&r{theme_color} {title} &m
+    &r
+  # Muss genau ein Buchstabe sein
+  Header_Center_Letter: '-'
+  Header_Center_Padding: 120
+  Reloading: neu laden
+  Disabled: deaktiviert
+  Use_While_Null: '&cDieser Befehl kann nicht verwendet werden, während das Plugin {state} ist.'
+  Cannot_Autodetect_World: Nur lebendige Spieler können ~ für ihre Welt verwenden!
+  Incompatible: Dieser Befehl erfordert Minecraft {0} oder höher.
+  Toggled_Plugin_Part: '''&7Du '' + (ignoring ? ''&2ignorierst nun nicht mehr'' : ''&cignorierst jetzt'') + '' &7{0}.'''
+  Use_Alternative_Header: false
+  Alternative_Header: '&cMissionHB: &7Gib ''/{0} ?'' ein, um alle Befehle anzuzeigen.'
+  No_Console: '&cDu kannst diesen Befehl nur als Spieler verwenden.'
+  No_BungeeCord: Du musst BungeeCord aktiviert haben, um diese Funktion zu nutzen.
+  Console_Missing_Player_Name: Wenn du die Konsole benutzt, gib den Spielernamen an.
+  Cooldown_Wait: '&cWarte {duration} Sekunde(n), bevor du diesen Befehl erneut benutzt.'
+  Invalid_Argument: '&cUngültiges Argument. Führe &a/{label} ? &caus, um Hilfe zu erhalten.'
+  Invalid_Sub_Argument: '&cUngültiges Argument. Führe ''/{label} {0}'' aus, um Hilfe zu erhalten.'
+  Invalid_Argument_Multiline: '&cUngültiges Argument. Nutzung:'
+  Invalid_Time: 'Erwartete eine Zeitangabe wie ''3 Stunden'' oder ''15 Minuten'', erhalten: ''{input}'''
+  Invalid_Number: 'Die Zahl muss eine ganze oder eine Dezimalzahl sein. Erhalten: ''{input}'''
+  Invalid_String: '&cUngültige Zeichenkette. Erhalten: ''{input}&c'''
+  Invalid_World: 'Ungültige Welt ''{world}''. Verfügbare Welten: {available}'
+  Label_Authors: Erstellt von
+  Label_Description: '&c&lBeschreibung:'
+  Label_Optional_Args: optionale Argumente
+  Label_Required_Args: erforderliche Argumente
+  Label_Usage: '&c&lVerwendung:'
+  Label_Help_For: Hilfe für /{label}
+  Label_Subcommand_Description: ' &f/{label} {sublabel} {usage+}{dash+}{description}'
+  Help_Tooltip_Description: '&7Beschreibung: &f{description}'
+  Help_Tooltip_Permission: '&7Berechtigung: &f{permission}'
+  Help_Tooltip_Usage: '&7Verwendung: &f'
+  Reload_Description: Lade die Konfiguration neu.
+  Reload_Started: Lade Plugin-Daten neu, bitte warten...
+  Reload_Success: '&aMissionHB {plugin_version} wurde erfolgreich neu geladen.'
+  Reload_Fail: '&4Oups, &cNeuladen fehlgeschlagen! Siehe Konsole für weitere Informationen. Fehler: {error}'
+  Reload_File_Load_Error: '&4Oups, &cbeim Laden von Dateien von der Festplatte ist ein Problem aufgetreten! Siehe Konsole für weitere Informationen. MissionHB wurde nicht neu geladen.'
+  Debug_Description: Erstelle eine ZIP-Datei mit deinen Einstellungen zur Fehlerberichterstattung.
+  Debug_Preparing: '&aErstelle Debug-Protokoll...'
+  Debug_Success: '&2Erfolgreich {amount} Datei(en) in debug.zip kopiert. Deine sensiblen MySQL-Daten wurden aus den yml-Dateien entfernt. Bitte lade sie über ufile.io hoch und sende sie uns zur Überprüfung.'
+  Debug_Copy_Fail: '&cDas Kopieren von Dateien ist fehlgeschlagen bei Datei messages_en und wurde gestoppt. Siehe Konsole für weitere Informationen.'
+  Debug_Zip_Fail: '&cErstellung eines ZIP-Archivs deiner Dateien fehlgeschlagen, siehe Konsole für weitere Informationen. Bitte zippe den debug/ Ordner manuell und sende ihn uns über ufile.io.'
+  Perms_Description: Zeigt alle Berechtigungen des Plugins an.
+  Perms_Header: Auflistung aller Plugin-Berechtigungen
+  Perms_Main: Haupt
+  Perms_Permissions: 'Berechtigungen:'
+  Perms_True_By_Default: '&7[standardmäßig aktiviert]'
+  Perms_Info: '&7Info: &f'
+  Perms_Default: '&7Standard? '
+  Perms_Applied: '&7Hast du sie? '
+  Perms_Yes: '&2ja'
+  Perms_No: '&cnein'
+  Region_Set_Primary: Primären Bereichspunkt gesetzt.
+  Region_Set_Secondary: Sekundären Bereichspunkt gesetzt.
+
+# Nachrichten zur Seitenaufteilung in der Befehlsübersicht
+Pages:
+  No_Page_Number: '&cBitte gib eine Seitenzahl für diesen Befehl an.'
+  No_Pages: '&cDu hast keine gespeicherten Seiten zum Anzeigen.'
+  No_Page: Die Seiten enthalten die angegebene Seitennummer nicht.
+  Invalid_Page: '&cDeine Eingabe ''{input}'' ist keine gültige Zahl.'
+  Go_To_Page: '&7Gehe zu Seite {page}'
+  Go_To_First_Page: '&7Gehe zur ersten Seite'
+  Tooltip:
+    - '&7Du kannst auch mit'
+    - '&7dem versteckten Befehl ''/#flp <Seite>'' navigieren.'
+
+# Spielerbezogene Nachrichten
+Player:
+  Not_Online: '&cSpieler {player} &cist nicht auf diesem Server online.'
+  Not_Played_Before: '&cSpieler {player} &chat noch nie gespielt oder es konnten keine Daten gefunden werden.'
+  Invalid_UUID: '&cEs konnte kein Spieler mit der UUID {uuid} gefunden werden.'
+
+# Menübezogene Nachrichten
+Menu:
+  Cannot_Open_During_Conversation: '&cGib ''exit'' ein, um das Gespräch zu beenden, bevor du das Menü öffnest.'
+  Item_Deleted: '&2Das {item} wurde gelöscht.'
+  Error: '&cOups! Es gab ein Problem mit diesem Menü! Bitte kontaktiere den Administrator und überprüfe die Konsole auf Details.'
+  Page_Previous: '&8<< &fSeite {page}'
+  Page_Next: Seite {page} &8>>
+  Page_First: '&7Erste Seite'
+  Page_Last: '&7Letzte Seite'
+  Title_Tools: Werkzeugmenü
+  Tooltip_Info: '&fMenü-Informationen'
+  Button_Return_Title: '&4&lZurück'
+  Button_Return_Lore:
+    - ''
+    - 'Zurückkehren.'
+
+# Nachrichten für Spieler-Dialoge
+Conversation:
+  Not_Conversing: '&cDu kannst diesen Befehl nur verwenden, wenn du aufgefordert wurdest, etwas in den Chat einzugeben.'
+  Requires_Player: Nur Spieler können an diesem Gespräch teilnehmen.
+  Error: '&cOups! Es gab ein Problem mit diesem Gespräch! Bitte kontaktiere den Administrator und überprüfe die Konsole auf Details.'
+  Conversation_Cancelled: Deine ausstehende Chateingabe wurde abgebrochen.
+  Conversation_Cancelled_Inactive: Deine ausstehende Chateingabe wurde abgebrochen, da du inaktiv warst.
+
+# Nachrichten für Werkzeuge
+Tool:
+  Error: '&cOups! Es gab ein Problem mit diesem Werkzeug! Bitte kontaktiere den Administrator und überprüfe die Konsole auf Details.'
+
+# Einzahl- und Mehrzahlformen
+Cases:
+  Second: Sekunde, Sekunden
+  Minute: Minute, Minuten
+  Hour: Stunde, Stunden
+  Day: Tag, Tage
+  Week: Woche, Wochen
+  Month: Monat, Monate
+  Year: Jahr, Jahre
+
+# Sonstiges
+None: Keine
+Server_Prefix: '[Server]'
+Console_Name: Konsole
+
+# Datenbankbezogene Nachrichten
+Data_Missing: '&c{name} fehlen Datenbankinformationen! Bitte erstelle {type} nur im Spiel! Überspringe..'
+Data_Loading: Datenbank lädt Daten, bitte warten...
+
+# Nachrichten für fehlende Berechtigungen
+No_Permission: '&cDu hast keine Berechtigung dafür: {permission}'
+
+# Interne Versionsnummer
+Version: 1
+
+Prefix:
+  Announce: '&8&l[&a&l!&8&l]&7'
