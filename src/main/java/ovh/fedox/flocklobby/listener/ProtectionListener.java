@@ -24,6 +24,22 @@ import org.mineacademy.fo.annotation.AutoRegister;
 public final class ProtectionListener implements Listener {
 
 	/**
+	 * Cancel all block interactions
+	 *
+	 * @param event PlayerInteractEvent
+	 */
+	@EventHandler
+	public void onInteract(PlayerInteractEvent event) {
+		if (event.getAction() == Action.RIGHT_CLICK_BLOCK || event.getAction() == Action.LEFT_CLICK_BLOCK) {
+			event.setCancelled(true);
+		}
+
+		if (event.getAction() == Action.PHYSICAL) {
+			event.setCancelled(true);
+		}
+	}
+
+	/**
 	 * Cancel all entity damage
 	 *
 	 * @param e the event
