@@ -219,7 +219,7 @@ public final class DoubleJumpListener implements Listener {
 						Location particleLoc = loc.clone().add(x, 0.1, z);
 
 						player.getWorld().spawnParticle(
-								Particle.HAPPY_VILLAGER,
+								Particle.END_ROD,
 								particleLoc,
 								1, 0, 0, 0, 0
 						);
