@@ -1,10 +1,12 @@
 package ovh.fedox.flocklobby;
 
-
 import org.mineacademy.fo.Common;
 import org.mineacademy.fo.plugin.SimplePlugin;
+import ovh.fedox.flocklobby.listener.DoubleJumpListener;
+import ovh.fedox.flocklobby.settings.Setting;
 import ovh.fedox.flocklobby.task.LobbyWorldTask;
 import ovh.fedox.flocklobby.util.FlockLeaderboard;
+import ovh.fedox.flocklobby.util.NPCUtil;
 
 /**
  * FlockAPI.java - Main instance of the FlockAPI
@@ -14,6 +16,7 @@ import ovh.fedox.flocklobby.util.FlockLeaderboard;
  */
 
 public final class FlockLobby extends SimplePlugin {
+
 
 	/**
 	 * Get the instance of the FlockAPI
@@ -30,6 +33,7 @@ public final class FlockLobby extends SimplePlugin {
 	@Override
 	protected void onReloadablesStart() {
 		Common.setTellPrefix("&8&l➽ &a&lzFlockii.de &8&l•&7");
+
 	}
 
 
@@ -40,10 +44,18 @@ public final class FlockLobby extends SimplePlugin {
 	protected void onPluginStart() {
 		Common.setTellPrefix("&8&l➽ &a&lzFlockii.de &8&l•&7");
 
+		NPCUtil.initialize(this);
 		FlockLeaderboard.createLeaderboard();
 
 		Common.runTimerAsync(20, 20 * 60 * 5, FlockLeaderboard::updateLeaderboard);
-		Common.runLaterAsync(20 * 60 * 5, new LobbyWorldTask());
+		Common.runLater(20 * 60 * 5, new LobbyWorldTask());
+
+		Common.runLater(20, () -> {
+			Setting.NPCS.forEach(NPCUtil::addNPC);
+		});
+
+		registerEvents(new DoubleJumpListener(this));
+
 	}
 
 	/**
@@ -52,5 +64,9 @@ public final class FlockLobby extends SimplePlugin {
 	@Override
 	protected void onPluginStop() {
 		FlockLeaderboard.deleteLeaderboard();
+		NPCUtil.clearNPCs();
+
+		getServer().getMessenger().unregisterIncomingPluginChannel(this);
+		getServer().getMessenger().unregisterOutgoingPluginChannel(this);
 	}
 }
