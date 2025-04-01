@@ -25,7 +25,7 @@ import java.util.UUID;
  * Copyright © 2025 Fedox. All rights reserved.
  */
 
-public class DoubleJumpListener implements Listener {
+public final class DoubleJumpListener implements Listener {
 
 	private final HashSet<String> players = new HashSet<>();
 	private final Map<UUID, Long> cooldowns = new HashMap<>();
@@ -135,7 +135,7 @@ public class DoubleJumpListener implements Listener {
 						Location particleLoc = loc.clone().add(x, 0.1, z);
 
 						player.getWorld().spawnParticle(
-								Particle.WITCH,
+								Particle.END_ROD,
 								particleLoc,
 								1, 0, 0, 0, 0
 						);
@@ -219,7 +219,7 @@ public class DoubleJumpListener implements Listener {
 						Location particleLoc = loc.clone().add(x, 0.1, z);
 
 						player.getWorld().spawnParticle(
-								Particle.END_ROD,
+								Particle.HAPPY_VILLAGER,
 								particleLoc,
 								1, 0, 0, 0, 0
 						);
