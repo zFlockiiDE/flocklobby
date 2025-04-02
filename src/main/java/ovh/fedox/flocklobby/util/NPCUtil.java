@@ -5,19 +5,28 @@ import eu.decentsoftware.holograms.api.holograms.Hologram;
 import lombok.Getter;
 import lombok.experimental.UtilityClass;
 import net.citizensnpcs.api.CitizensAPI;
+import net.citizensnpcs.api.event.NPCClickEvent;
+import net.citizensnpcs.api.event.NPCRightClickEvent;
+import net.citizensnpcs.api.npc.NPC;
 import net.citizensnpcs.trait.LookClose;
 import net.citizensnpcs.trait.SkinTrait;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.EntityType;
+import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitTask;
 import org.mineacademy.fo.Common;
+import org.mineacademy.fo.Messenger;
 import ovh.fedox.flockapi.database.RedisManager;
-import ovh.fedox.flocklobby.model.NPC;
+import ovh.fedox.flockapi.util.SoundUtil;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.exceptions.JedisConnectionException;
 
+import java.io.ByteArrayOutputStream;
+import java.io.DataOutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -31,13 +40,16 @@ import java.util.Map;
  */
 
 @UtilityClass
-public class NPCUtil {
+public class NPCUtil implements Listener {
 
 	@Getter
-	private static final List<NPC> npcs = new ArrayList<>();
+	private static final List<ovh.fedox.flocklobby.model.NPC> npcs = new ArrayList<>();
 
 	@Getter
 	private static final Map<String, Hologram> holograms = new HashMap<>();
+
+	private static final Map<Integer, String> npcServerMap = new HashMap<>();
+
 	private static final int spawnDelay = 20;
 	private static BukkitTask updateTask;
 	private static Plugin plugin;
@@ -50,6 +62,10 @@ public class NPCUtil {
 	public static void initialize(Plugin pluginInstance) {
 		plugin = pluginInstance;
 		startUpdateTask();
+
+		Bukkit.getPluginManager().registerEvents(new NPCClickListener(), plugin);
+
+		plugin.getServer().getMessenger().registerOutgoingPluginChannel(plugin, "BungeeCord");
 	}
 
 	public static void addNPC(String object) {
@@ -68,7 +84,7 @@ public class NPCUtil {
 
 		Location location = new Location(Bukkit.getWorld(worldName), x, y, z);
 
-		NPC npc = new NPC(server, prettyName, skin, location);
+		ovh.fedox.flocklobby.model.NPC npc = new ovh.fedox.flocklobby.model.NPC(server, prettyName, skin, location);
 
 		int currentStep = npcs.size();
 
@@ -82,13 +98,16 @@ public class NPCUtil {
 		}, (long) currentStep * spawnDelay);
 	}
 
-	public static void spawnNPC(NPC npc) {
+	public static void spawnNPC(ovh.fedox.flocklobby.model.NPC npc) {
 		try {
-			net.citizensnpcs.api.npc.NPC newNPC = CitizensAPI.getNPCRegistry().createNPC(EntityType.PLAYER, npc.getSKIN(), npc.getLOCATION());
+			NPC newNPC = CitizensAPI.getNPCRegistry().createNPC(EntityType.PLAYER, npc.getSKIN(), npc.getLOCATION());
 
 			newNPC.setName(Common.colorize("&8&m                "));
 			newNPC.getOrAddTrait(LookClose.class).lookClose(true);
 			newNPC.getOrAddTrait(SkinTrait.class).setSkinName(npc.getSKIN());
+			newNPC.getOrAddTrait(SkinTrait.class).setShouldUpdateSkins(true);
+
+			npcServerMap.put(newNPC.getId(), npc.getSERVER().toLowerCase());
 		} catch (Exception e) {
 			Common.logFramed("Failed to spawn NPC: " + e.getMessage(), e + "");
 		}
@@ -99,7 +118,7 @@ public class NPCUtil {
 	 *
 	 * @param npc The NPC to create a hologram for
 	 */
-	private static void createHologram(NPC npc) {
+	private static void createHologram(ovh.fedox.flocklobby.model.NPC npc) {
 		String hologramName = "npc_hologram_" + npc.getSERVER().toLowerCase();
 
 		Location hologramLocation = npc.getLOCATION().clone().add(0, 2.8, 0);
@@ -121,7 +140,7 @@ public class NPCUtil {
 	 * @param npc The NPC
 	 * @return List of formatted lines
 	 */
-	private static List<String> getHologramLines(NPC npc) {
+	private static List<String> getHologramLines(ovh.fedox.flocklobby.model.NPC npc) {
 		List<String> lines = new ArrayList<>();
 		String serverName = npc.getSERVER().toLowerCase();
 
@@ -185,7 +204,7 @@ public class NPCUtil {
 			return;
 		}
 
-		for (NPC npc : npcs) {
+		for (ovh.fedox.flocklobby.model.NPC npc : npcs) {
 			try {
 				String serverKey = npc.getSERVER().toLowerCase();
 				Hologram hologram = holograms.get(serverKey);
@@ -233,10 +252,82 @@ public class NPCUtil {
 		CitizensAPI.getNPCRegistry().deregisterAll();
 
 		npcs.clear();
+		npcServerMap.clear();
 
 		if (updateTask != null) {
 			updateTask.cancel();
 			updateTask = null;
 		}
 	}
+
+	/**
+	 * Check if a server is available
+	 *
+	 * @param serverName The server name to check
+	 * @return True if the server is available
+	 */
+	public static boolean isServerAvailable(String serverName) {
+		try {
+			Jedis jedis = RedisManager.getJedis();
+			if (jedis != null && jedis.isConnected()) {
+				return jedis.sismember("available-server", serverName.toLowerCase());
+			}
+		} catch (Exception e) {
+			Common.log("&cError checking server availability: " + e.getMessage());
+		}
+		return false;
+	}
+
+	/**
+	 * Send a player to a BungeeCord server
+	 *
+	 * @param player The player to send
+	 * @param serverName The server to send them to
+	 */
+	public static void sendPlayerToServer(Player player, String serverName) {
+		try {
+			ByteArrayOutputStream b = new ByteArrayOutputStream();
+			DataOutputStream out = new DataOutputStream(b);
+
+			out.writeUTF("Connect");
+			out.writeUTF(serverName);
+
+			player.sendPluginMessage(plugin, "BungeeCord", b.toByteArray());
+
+			Messenger.success(player, "Verbinde mit '" + serverName + "'...");
+			SoundUtil.playSound(player, SoundUtil.SoundType.SUCCESS);
+		} catch (Exception e) {
+			Common.log("&cError sending player to server: " + e.getMessage());
+			Messenger.error(player, "&cFehler beim Verbinden mit dem Server. Bitte versuche es später erneut.");
+			SoundUtil.playSound(player, SoundUtil.SoundType.FAILURE);
+		}
+	}
+
+	/**
+	 * Inner class to handle NPC click events
+	 */
+	public static class NPCClickListener implements Listener {
+
+		@EventHandler
+		public void onNPCRightClick(NPCRightClickEvent event) {
+			handleNPCClick(event.getNPC(), event.getClicker());
+		}
+
+		private void handleNPCClick(NPC citizensNPC, Player player) {
+			String serverName = npcServerMap.get(citizensNPC.getId());
+
+			if (serverName == null) {
+				return;
+			}
+
+			if (isServerAvailable(serverName)) {
+				sendPlayerToServer(player, serverName);
+			} else {
+				Messenger.error(player, "&c&lServer nicht verfügbar!");
+				Messenger.error(player, "&cDieser Server ist derzeit nicht erreichbar.");
+				SoundUtil.playSound(player, SoundUtil.SoundType.FAILURE);
+			}
+		}
+	}
 }
+
