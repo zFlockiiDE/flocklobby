@@ -29,9 +29,6 @@ public class Setting extends SimpleSettings {
 		SPAWN_LOCATION = getString("Spawn_Location");
 		FLOCK_LEADERBOARD_LOCATION = getString("Flock_Leaderboard_Location");
 		MIN_Y = getDouble("Min_Y");
-
-		// [13:43:04 INFO]: {Server=lobby, Pretty_Name=Lobby, Skin=zFlockii, Location=world, -19.5, 65, 25}
-		// [13:43:04 INFO]: {Server=factions, Pretty_Name=Factions, Skin=Teekqu, Location=world, -18.5, 65, 29.5}
 		NPCS = getStringList("NPCs");
 	}
 
