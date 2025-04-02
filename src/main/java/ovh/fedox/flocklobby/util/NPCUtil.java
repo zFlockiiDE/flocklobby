@@ -5,7 +5,7 @@ import eu.decentsoftware.holograms.api.holograms.Hologram;
 import lombok.Getter;
 import lombok.experimental.UtilityClass;
 import net.citizensnpcs.api.CitizensAPI;
-import net.citizensnpcs.api.event.NPCClickEvent;
+import net.citizensnpcs.api.event.NPCLeftClickEvent;
 import net.citizensnpcs.api.event.NPCRightClickEvent;
 import net.citizensnpcs.api.npc.NPC;
 import net.citizensnpcs.trait.LookClose;
@@ -281,7 +281,7 @@ public class NPCUtil implements Listener {
 	/**
 	 * Send a player to a BungeeCord server
 	 *
-	 * @param player The player to send
+	 * @param player     The player to send
 	 * @param serverName The server to send them to
 	 */
 	public static void sendPlayerToServer(Player player, String serverName) {
@@ -310,6 +310,11 @@ public class NPCUtil implements Listener {
 
 		@EventHandler
 		public void onNPCRightClick(NPCRightClickEvent event) {
+			handleNPCClick(event.getNPC(), event.getClicker());
+		}
+
+		@EventHandler
+		public void onNPCClick(NPCLeftClickEvent event) {
 			handleNPCClick(event.getNPC(), event.getClicker());
 		}
 
