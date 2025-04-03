@@ -1,6 +1,7 @@
 package ovh.fedox.flocklobby.listener;
 
 
+import net.citizensnpcs.api.CitizensAPI;
 import org.bukkit.*;
 import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
@@ -106,7 +107,7 @@ public final class PlayerListener implements Listener {
 	 */
 	@EventHandler
 	public void onEntityDamageByEntity(EntityDamageByEntityEvent event) {
-		if (event.getDamager().getType() == EntityType.PLAYER) {
+		if (event.getDamager().getType() == EntityType.PLAYER && event.getEntity().getType() == EntityType.PLAYER && !CitizensAPI.getNPCRegistry().isNPC(event.getEntity())) {
 			final Player damager = (Player) event.getDamager();
 
 			if (damager.hasPermission("omega.super.flugstunde")) {

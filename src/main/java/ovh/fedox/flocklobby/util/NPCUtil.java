@@ -52,11 +52,10 @@ public class NPCUtil implements Listener {
 
 	private static final Map<Integer, String> npcServerMap = new HashMap<>();
 
-	// Rate limiting variables
 	private static final Map<String, Long> lastRequestTimes = new ConcurrentHashMap<>();
-	private static final long REQUEST_COOLDOWN = TimeUnit.SECONDS.toMillis(2); // 2 second cooldown between requests
+	private static final long REQUEST_COOLDOWN = TimeUnit.SECONDS.toMillis(2);
 	private static final int MAX_RETRIES = 3;
-	private static final long RETRY_DELAY = TimeUnit.SECONDS.toMillis(5); // 5 second delay between retries
+	private static final long RETRY_DELAY = TimeUnit.SECONDS.toMillis(5);
 
 	private static final int spawnDelay = 20;
 	private static BukkitTask updateTask;
@@ -118,7 +117,6 @@ public class NPCUtil implements Listener {
 	 */
 	private static void spawnNPCWithRetry(ovh.fedox.flocklobby.model.NPC npc, int retryCount) {
 		try {
-			// Check if we need to wait due to rate limiting
 			String skinName = npc.getSKIN();
 			long currentTime = System.currentTimeMillis();
 			Long lastRequestTime = lastRequestTimes.get(skinName);
@@ -126,29 +124,24 @@ public class NPCUtil implements Listener {
 			if (lastRequestTime != null) {
 				long timeSinceLastRequest = currentTime - lastRequestTime;
 				if (timeSinceLastRequest < REQUEST_COOLDOWN) {
-					// We need to wait before making another request
 					long waitTime = REQUEST_COOLDOWN - timeSinceLastRequest;
 					Common.log("&eWaiting " + waitTime + "ms before spawning NPC with skin: " + skinName);
 
-					// Schedule the spawn for later
 					Bukkit.getScheduler().runTaskLater(plugin, () -> spawnNPCWithRetry(npc, retryCount), (waitTime / 50) + 1);
 					return;
 				}
 			}
 
-			// Update the last request time
 			lastRequestTimes.put(skinName, currentTime);
 
-			// Create the NPC
 			NPC newNPC = CitizensAPI.getNPCRegistry().createNPC(EntityType.PLAYER, npc.getSKIN(), npc.getLOCATION());
 
 			newNPC.setName(Common.colorize("&8&m                "));
 			newNPC.getOrAddTrait(LookClose.class).lookClose(true);
 
-			// Apply skin with rate limiting in mind
 			SkinTrait skinTrait = newNPC.getOrAddTrait(SkinTrait.class);
 			skinTrait.setSkinName(npc.getSKIN());
-			skinTrait.setShouldUpdateSkins(false); // Set to false to prevent automatic updates that might cause rate limiting
+			skinTrait.setShouldUpdateSkins(true);
 
 			npcServerMap.put(newNPC.getId(), npc.getSERVER().toLowerCase());
 
@@ -158,22 +151,18 @@ public class NPCUtil implements Listener {
 			String errorMsg = e.getMessage();
 			Common.log("&cFailed to spawn NPC: " + errorMsg);
 
-			// Check if it's a rate limiting issue
 			if ((errorMsg != null && errorMsg.contains("403")) ||
 					(e.getCause() != null && e.getCause().getMessage() != null && e.getCause().getMessage().contains("403"))) {
 
 				if (retryCount < MAX_RETRIES) {
 					int nextRetry = retryCount + 1;
-					long delayTicks = RETRY_DELAY / 50; // Convert ms to ticks
+					long delayTicks = RETRY_DELAY / 50;
 
 					Common.log("&eRate limit detected. Retrying in " + (RETRY_DELAY / 1000) + " seconds. Attempt " + nextRetry + "/" + MAX_RETRIES);
 
-					// Schedule a retry
 					Bukkit.getScheduler().runTaskLater(plugin, () -> spawnNPCWithRetry(npc, nextRetry), delayTicks);
 				} else {
 					Common.log("&cMax retries reached for NPC with skin: " + npc.getSKIN() + ". Using fallback skin.");
-
-					// Use a fallback skin after max retries
 					try {
 						NPC fallbackNPC = CitizensAPI.getNPCRegistry().createNPC(EntityType.PLAYER, "Steve", npc.getLOCATION());
 						fallbackNPC.setName(Common.colorize("&8&m                "));
