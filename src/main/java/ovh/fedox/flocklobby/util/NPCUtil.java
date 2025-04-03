@@ -31,6 +31,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 
 /**
  * NPCUtil.java - NPC Utils for the lobby system
@@ -49,6 +51,12 @@ public class NPCUtil implements Listener {
 	private static final Map<String, Hologram> holograms = new HashMap<>();
 
 	private static final Map<Integer, String> npcServerMap = new HashMap<>();
+
+	// Rate limiting variables
+	private static final Map<String, Long> lastRequestTimes = new ConcurrentHashMap<>();
+	private static final long REQUEST_COOLDOWN = TimeUnit.SECONDS.toMillis(2); // 2 second cooldown between requests
+	private static final int MAX_RETRIES = 3;
+	private static final long RETRY_DELAY = TimeUnit.SECONDS.toMillis(5); // 5 second delay between retries
 
 	private static final int spawnDelay = 20;
 	private static BukkitTask updateTask;
@@ -99,17 +107,86 @@ public class NPCUtil implements Listener {
 	}
 
 	public static void spawnNPC(ovh.fedox.flocklobby.model.NPC npc) {
+		spawnNPCWithRetry(npc, 0);
+	}
+
+	/**
+	 * Spawn an NPC with retry logic to handle rate limiting
+	 *
+	 * @param npc        The NPC to spawn
+	 * @param retryCount Current retry attempt
+	 */
+	private static void spawnNPCWithRetry(ovh.fedox.flocklobby.model.NPC npc, int retryCount) {
 		try {
+			// Check if we need to wait due to rate limiting
+			String skinName = npc.getSKIN();
+			long currentTime = System.currentTimeMillis();
+			Long lastRequestTime = lastRequestTimes.get(skinName);
+
+			if (lastRequestTime != null) {
+				long timeSinceLastRequest = currentTime - lastRequestTime;
+				if (timeSinceLastRequest < REQUEST_COOLDOWN) {
+					// We need to wait before making another request
+					long waitTime = REQUEST_COOLDOWN - timeSinceLastRequest;
+					Common.log("&eWaiting " + waitTime + "ms before spawning NPC with skin: " + skinName);
+
+					// Schedule the spawn for later
+					Bukkit.getScheduler().runTaskLater(plugin, () -> spawnNPCWithRetry(npc, retryCount), (waitTime / 50) + 1);
+					return;
+				}
+			}
+
+			// Update the last request time
+			lastRequestTimes.put(skinName, currentTime);
+
+			// Create the NPC
 			NPC newNPC = CitizensAPI.getNPCRegistry().createNPC(EntityType.PLAYER, npc.getSKIN(), npc.getLOCATION());
 
 			newNPC.setName(Common.colorize("&8&m                "));
 			newNPC.getOrAddTrait(LookClose.class).lookClose(true);
-			newNPC.getOrAddTrait(SkinTrait.class).setSkinName(npc.getSKIN());
-			newNPC.getOrAddTrait(SkinTrait.class).setShouldUpdateSkins(true);
+
+			// Apply skin with rate limiting in mind
+			SkinTrait skinTrait = newNPC.getOrAddTrait(SkinTrait.class);
+			skinTrait.setSkinName(npc.getSKIN());
+			skinTrait.setShouldUpdateSkins(false); // Set to false to prevent automatic updates that might cause rate limiting
 
 			npcServerMap.put(newNPC.getId(), npc.getSERVER().toLowerCase());
+
+			Common.log("&aSuccessfully spawned NPC with skin: " + npc.getSKIN());
+
 		} catch (Exception e) {
-			Common.logFramed("Failed to spawn NPC: " + e.getMessage(), e + "");
+			String errorMsg = e.getMessage();
+			Common.log("&cFailed to spawn NPC: " + errorMsg);
+
+			// Check if it's a rate limiting issue
+			if ((errorMsg != null && errorMsg.contains("403")) ||
+					(e.getCause() != null && e.getCause().getMessage() != null && e.getCause().getMessage().contains("403"))) {
+
+				if (retryCount < MAX_RETRIES) {
+					int nextRetry = retryCount + 1;
+					long delayTicks = RETRY_DELAY / 50; // Convert ms to ticks
+
+					Common.log("&eRate limit detected. Retrying in " + (RETRY_DELAY / 1000) + " seconds. Attempt " + nextRetry + "/" + MAX_RETRIES);
+
+					// Schedule a retry
+					Bukkit.getScheduler().runTaskLater(plugin, () -> spawnNPCWithRetry(npc, nextRetry), delayTicks);
+				} else {
+					Common.log("&cMax retries reached for NPC with skin: " + npc.getSKIN() + ". Using fallback skin.");
+
+					// Use a fallback skin after max retries
+					try {
+						NPC fallbackNPC = CitizensAPI.getNPCRegistry().createNPC(EntityType.PLAYER, "Steve", npc.getLOCATION());
+						fallbackNPC.setName(Common.colorize("&8&m                "));
+						fallbackNPC.getOrAddTrait(LookClose.class).lookClose(true);
+
+						npcServerMap.put(fallbackNPC.getId(), npc.getSERVER().toLowerCase());
+					} catch (Exception ex) {
+						Common.logFramed("&cFailed to create fallback NPC: " + ex.getMessage());
+					}
+				}
+			} else {
+				Common.logFramed("&cNon-rate-limit error spawning NPC: " + e.getMessage(), e + "");
+			}
 		}
 	}
 
@@ -253,6 +330,7 @@ public class NPCUtil implements Listener {
 
 		npcs.clear();
 		npcServerMap.clear();
+		lastRequestTimes.clear();
 
 		if (updateTask != null) {
 			updateTask.cancel();

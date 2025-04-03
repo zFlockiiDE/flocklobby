@@ -5,7 +5,7 @@ import eu.decentsoftware.holograms.api.holograms.Hologram;
 import lombok.experimental.UtilityClass;
 import org.bukkit.Location;
 import ovh.fedox.flockapi.FlockAPI;
-import ovh.fedox.flockapi.database.model.ApiPlayer;
+import ovh.fedox.flockapi.database.model.impl.ApiPlayer;
 import ovh.fedox.flocklobby.settings.Setting;
 
 import java.util.ArrayList;
