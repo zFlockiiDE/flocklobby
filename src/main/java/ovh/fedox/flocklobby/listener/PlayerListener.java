@@ -1,23 +1,22 @@
 package ovh.fedox.flocklobby.listener;
 
 
-import org.bukkit.Color;
-import org.bukkit.FireworkEffect;
-import org.bukkit.GameMode;
-import org.bukkit.entity.ArmorStand;
-import org.bukkit.entity.Firework;
-import org.bukkit.entity.Player;
+import org.bukkit.*;
+import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.player.PlayerInteractAtEntityEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.inventory.meta.FireworkMeta;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
+import org.bukkit.util.Vector;
 import org.mineacademy.fo.Common;
 import org.mineacademy.fo.annotation.AutoRegister;
 import org.mineacademy.fo.remain.CompSound;
+import org.mineacademy.fo.remain.Remain;
 import ovh.fedox.flockapi.database.service.punishment.PunishmentService;
 import ovh.fedox.flocklobby.settings.Setting;
 import ovh.fedox.flocklobby.util.LocationUtil;
@@ -97,6 +96,69 @@ public final class PlayerListener implements Listener {
 
 		if (player.getLocation().getY() < Setting.MIN_Y) {
 			player.teleport(LocationUtil.stringToLocation(Setting.SPAWN_LOCATION));
+		}
+	}
+
+	/**
+	 * Handle entity damage by entity event
+	 *
+	 * @param event EntityDamageByEntityEvent
+	 */
+	@EventHandler
+	public void onEntityDamageByEntity(EntityDamageByEntityEvent event) {
+		if (event.getDamager().getType() == EntityType.PLAYER) {
+			final Player damager = (Player) event.getDamager();
+
+			if (damager.hasPermission("omega.super.flugstunde")) {
+				Entity hitEntity = event.getEntity();
+
+				Vector direction = hitEntity.getLocation().toVector().subtract(damager.getLocation().toVector()).normalize();
+				double strength = 3.0;
+
+				direction.setY(0.5);
+
+				direction.multiply(strength);
+
+				hitEntity.setVelocity(direction);
+
+				hitEntity.getWorld().playSound(hitEntity.getLocation(), Sound.ENTITY_GENERIC_EXPLODE, 0.5f, 1.2f);
+				hitEntity.getWorld().playSound(hitEntity.getLocation(), Sound.ENTITY_PLAYER_ATTACK_KNOCKBACK, 1.0f, 0.8f);
+
+				spawnKnockbackParticles(hitEntity.getLocation());
+
+				if (hitEntity instanceof Player hitPlayer) {
+					Remain.sendTitle(hitPlayer, 5, 15, 5, "", "§a§l✈ Flugstunde! ✈");
+				}
+			}
+		}
+	}
+
+	/**
+	 * Spawn particles at the given location
+	 *
+	 * @param location The location to spawn the particles at
+	 */
+	private void spawnKnockbackParticles(Location location) {
+		World world = location.getWorld();
+
+		world.spawnParticle(Particle.EXPLOSION, location, 5, 0.2, 0.2, 0.2, 0.05);
+
+		world.spawnParticle(Particle.SMOKE, location, 15, 0.3, 0.3, 0.3, 0.05);
+
+		world.spawnParticle(Particle.CRIT, location, 20, 0.5, 0.5, 0.5, 0.1);
+
+		try {
+			Particle.DustOptions dustOptions = new Particle.DustOptions(Color.GREEN, 2.0f);
+			world.spawnParticle(Particle.DUST, location, 15, 0.5, 0.5, 0.5, 0, dustOptions);
+		} catch (Exception e) {
+			// Fallback für ältere Versionen
+			world.spawnParticle(Particle.DUST, location, 15, 0.5, 0.5, 0.5, 0);
+		}
+
+		Vector direction = location.getDirection().normalize().multiply(0.5);
+		for (int i = 0; i < 5; i++) {
+			Location particleLocation = location.clone().add(direction.clone().multiply(i));
+			world.spawnParticle(Particle.CLOUD, particleLocation, 3, 0.1, 0.1, 0.1, 0.02);
 		}
 	}
 
