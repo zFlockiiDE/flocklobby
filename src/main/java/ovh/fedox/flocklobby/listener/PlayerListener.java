@@ -18,6 +18,7 @@ import org.bukkit.potion.PotionEffectType;
 import org.mineacademy.fo.Common;
 import org.mineacademy.fo.annotation.AutoRegister;
 import org.mineacademy.fo.remain.CompSound;
+import ovh.fedox.flockapi.database.service.punishment.PunishmentService;
 import ovh.fedox.flocklobby.settings.Setting;
 import ovh.fedox.flocklobby.util.LocationUtil;
 
@@ -43,6 +44,10 @@ public final class PlayerListener implements Listener {
 		final Player player = event.getPlayer();
 
 		int year = Calendar.getInstance().get(Calendar.YEAR);
+
+		if (PunishmentService.getInstance().isBanned(player.getUniqueId())) {
+			return;
+		}
 
 		player.getInventory().clear();
 		player.setGameMode(GameMode.ADVENTURE);
