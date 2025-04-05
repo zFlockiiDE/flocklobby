@@ -4,10 +4,12 @@ import eu.decentsoftware.holograms.api.DHAPI;
 import eu.decentsoftware.holograms.api.holograms.Hologram;
 import lombok.Getter;
 import lombok.experimental.UtilityClass;
+import net.citizensnpcs.Citizens;
 import net.citizensnpcs.api.CitizensAPI;
 import net.citizensnpcs.api.event.NPCLeftClickEvent;
 import net.citizensnpcs.api.event.NPCRightClickEvent;
 import net.citizensnpcs.api.npc.NPC;
+import net.citizensnpcs.api.npc.NPCRegistry;
 import net.citizensnpcs.trait.LookClose;
 import net.citizensnpcs.trait.SkinTrait;
 import org.bukkit.Bukkit;
@@ -16,17 +18,20 @@ import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitTask;
 import org.mineacademy.fo.Common;
 import org.mineacademy.fo.Messenger;
 import ovh.fedox.flockapi.database.RedisManager;
 import ovh.fedox.flockapi.util.SoundUtil;
+import ovh.fedox.flocklobby.FlockLobby;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.exceptions.JedisConnectionException;
 
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -142,6 +147,9 @@ public class NPCUtil implements Listener {
 			SkinTrait skinTrait = newNPC.getOrAddTrait(SkinTrait.class);
 			skinTrait.setSkinName(npc.getSKIN());
 			skinTrait.setShouldUpdateSkins(true);
+
+			newNPC.getEntity().setMetadata(NPC.Metadata.SHOULD_SAVE.getKey(), new FixedMetadataValue(plugin, false));
+
 
 			npcServerMap.put(newNPC.getId(), npc.getSERVER().toLowerCase());
 
@@ -309,21 +317,65 @@ public class NPCUtil implements Listener {
 	public static void clearNPCs() {
 		for (Hologram hologram : holograms.values()) {
 			if (hologram != null) {
-				DHAPI.removeHologram(hologram.getName());
+				try {
+					DHAPI.removeHologram(hologram.getName());
+				} catch (Exception e) {
+					Common.log("&cError removing hologram: " + e.getMessage());
+				}
 			}
 		}
-
 		holograms.clear();
 
-		CitizensAPI.getNPCRegistry().deregisterAll();
+		try {
+			Iterable<NPCRegistry> registeredNPCS = CitizensAPI.getNPCRegistries();
+			for (NPCRegistry registry : registeredNPCS) {
+				try {
+					for (NPC npc : registry.sorted()) {
+						if (npc != null) {
+							npc.destroy();
+						}
+					}
+				} catch (Exception e) {
+					Common.log("&cError processing NPC registry: " + e.getMessage());
+				}
+			}
+		} catch (Exception e) {
+			Common.log("&cError accessing NPC registries: " + e.getMessage());
+		}
+
+		deleteSavesDirectory();
 
 		npcs.clear();
 		npcServerMap.clear();
 		lastRequestTimes.clear();
 
 		if (updateTask != null) {
-			updateTask.cancel();
+			try {
+				updateTask.cancel();
+			} catch (Exception e) {
+				Common.log("&cError cancelling update task: " + e.getMessage());
+			}
 			updateTask = null;
+		}
+	}
+
+	/**
+	 * Deletes the Citizens/saves.yml directory, im doing this cause im too dumb to using their API
+	 */
+	private void deleteSavesDirectory() {
+		try {
+			String citizensFolder = FlockLobby.getPlugin(Citizens.class).getDataFolder().getAbsolutePath();
+			File savesFile = new File(citizensFolder, "saves.yml");
+
+			if (savesFile.exists()) {
+				savesFile.delete();
+				Common.log("&aDeleted Citizens/saves.yml file.");
+			} else {
+				Common.log("&cCitizens/saves.yml file does not exist.");
+			}
+
+		} catch (Exception e) {
+			Common.log("&cError deleting Citizens/saves.yml file: " + e.getMessage());
 		}
 	}
 
