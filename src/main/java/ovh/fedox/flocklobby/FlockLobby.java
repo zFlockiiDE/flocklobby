@@ -1,12 +1,18 @@
 package ovh.fedox.flocklobby;
 
+import lombok.Getter;
 import org.mineacademy.fo.Common;
 import org.mineacademy.fo.plugin.SimplePlugin;
+import ovh.fedox.flockapi.database.MongoDBAPI;
 import ovh.fedox.flocklobby.listener.DoubleJumpListener;
+import ovh.fedox.flocklobby.model.SkinNPC;
+import ovh.fedox.flocklobby.repository.ArmorStandSubmissionRepository;
 import ovh.fedox.flocklobby.settings.Setting;
 import ovh.fedox.flocklobby.task.LobbyWorldTask;
 import ovh.fedox.flocklobby.util.FlockLeaderboard;
+import ovh.fedox.flocklobby.util.LocationUtil;
 import ovh.fedox.flocklobby.util.NPCUtil;
+import ovh.fedox.flocklobby.util.SkinNPCUtil;
 
 /**
  * FlockAPI.java - Main instance of the FlockAPI
@@ -17,6 +23,9 @@ import ovh.fedox.flocklobby.util.NPCUtil;
 
 public final class FlockLobby extends SimplePlugin {
 
+	private MongoDBAPI mongoDBAPI;
+	@Getter
+	private ArmorStandSubmissionRepository submissionRepository;
 
 	/**
 	 * Get the instance of the FlockAPI
@@ -42,6 +51,15 @@ public final class FlockLobby extends SimplePlugin {
 	 */
 	@Override
 	protected void onPluginStart() {
+
+		this.mongoDBAPI = new MongoDBAPI(Setting.MongoDB.MONGO_CONNECTION_STRING, Setting.MongoDB.MONGO_DATABASE);
+
+		this.submissionRepository = new ArmorStandSubmissionRepository(
+				mongoDBAPI.getMongoDBManager().getCollection("armor_stand_submissions")
+		);
+
+		mongoDBAPI.getMongoDBManager().registerRepository("armorStandSubmissions", submissionRepository);
+
 		Common.setTellPrefix("&8&l➽ &a&lzFlockii.de &8&l•&7");
 
 		NPCUtil.initialize(this);
@@ -52,9 +70,11 @@ public final class FlockLobby extends SimplePlugin {
 
 		Common.runLater(20, () -> {
 			Setting.NPCS.forEach(NPCUtil::addNPC);
+			SkinNPCUtil.spawnNPCWithRetry(new SkinNPC(Setting.SkinNPC.SKIN, LocationUtil.stringToLocation(Setting.SkinNPC.LOCATION)));
 		});
 
 		registerEvents(new DoubleJumpListener(this));
+		registerEvents(new SkinNPCUtil.SkinNPCClickListener());
 
 	}
 
@@ -80,6 +100,10 @@ public final class FlockLobby extends SimplePlugin {
 			getServer().getMessenger().unregisterOutgoingPluginChannel(this);
 		} catch (Exception e) {
 			Common.log("&cError unregistering plugin channels: " + e.getMessage());
+		}
+
+		if (mongoDBAPI != null) {
+			mongoDBAPI.close();
 		}
 	}
 }

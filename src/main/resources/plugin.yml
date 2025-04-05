@@ -4,9 +4,6 @@ main: ${main.class}
 author: ${author}
 api-version: 1.13
 
-libraries:
-  - org.mongodb:mongodb-driver-sync:4.9.1
-
 depend:
   - FlockAPI
   - DecentHolograms

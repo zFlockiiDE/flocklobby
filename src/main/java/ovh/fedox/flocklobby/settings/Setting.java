@@ -32,5 +32,29 @@ public class Setting extends SimpleSettings {
 		NPCS = getStringList("NPCs");
 	}
 
+	public static class MongoDB {
+		public static String MONGO_CONNECTION_STRING;
+		public static String MONGO_DATABASE;
+
+		private static void init() {
+			setPathPrefix("MongoDB");
+
+			MONGO_CONNECTION_STRING = getString("Connection_String");
+			MONGO_DATABASE = getString("Database");
+		}
+	}
+
+	public static class SkinNPC {
+		public static String SKIN;
+		public static String LOCATION;
+
+		private static void init() {
+			setPathPrefix("SkinNPC");
+
+			SKIN = getString("Skin");
+			LOCATION = getString("Location");
+		}
+	}
+
 
 }
