@@ -63,10 +63,23 @@ public final class FlockLobby extends SimplePlugin {
 	 */
 	@Override
 	protected void onPluginStop() {
-		FlockLeaderboard.deleteLeaderboard();
-		NPCUtil.clearNPCs();
+		try {
+			FlockLeaderboard.deleteLeaderboard();
+		} catch (Exception e) {
+			Common.log("&cError deleting leaderboard: " + e.getMessage());
+		}
 
-		getServer().getMessenger().unregisterIncomingPluginChannel(this);
-		getServer().getMessenger().unregisterOutgoingPluginChannel(this);
+		try {
+			NPCUtil.clearNPCs();
+		} catch (Exception e) {
+			Common.log("&cError clearing NPCs: " + e.getMessage());
+		}
+
+		try {
+			getServer().getMessenger().unregisterIncomingPluginChannel(this);
+			getServer().getMessenger().unregisterOutgoingPluginChannel(this);
+		} catch (Exception e) {
+			Common.log("&cError unregistering plugin channels: " + e.getMessage());
+		}
 	}
 }
