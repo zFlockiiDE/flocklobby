@@ -56,6 +56,12 @@
             <groupId>${foundation.path}</groupId>
             <artifactId>Foundation</artifactId>
             <version>${foundation.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.mineacademy.plugin</groupId>
+                    <artifactId>CitizensAPI</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>ovh.fedox</groupId>
