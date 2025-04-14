@@ -19,6 +19,7 @@ public class ArmorStandSubmission implements GameEntity {
 	private String uuid;
 	private String name;
 	private String notice;
+	private Boolean isApproved;
 
 	@Override
 	public Document toDocument() {
@@ -28,6 +29,7 @@ public class ArmorStandSubmission implements GameEntity {
 		document.append("name", name);
 		document.append("notice", notice);
 		document.append("id", id);
+		document.append("isApproved", isApproved);
 
 		return document;
 	}
@@ -38,6 +40,7 @@ public class ArmorStandSubmission implements GameEntity {
 		this.name = document.getString("name");
 		this.notice = document.getString("notice");
 		this.id = document.getString("id");
+		this.isApproved = document.getBoolean("isApproved", false);
 	}
 
 	@Override

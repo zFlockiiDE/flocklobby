@@ -80,9 +80,15 @@ public class SkinNPCUtil {
 			String npcName = citizensNPC.getRawName();
 
 			if (npcName.contains("Skin-Anfrage einreichen")) {
-
 				if (!FlockLobby.getInstance().getSubmissionRepository().findByPlayerUUID(String.valueOf(player.getUniqueId())).isEmpty()) {
-					Messenger.error(player, "Du hast bereits eine Anfrage eingereicht!");
+
+					ArmorStandSubmission submission = FlockLobby.getInstance().getSubmissionRepository().findByPlayerUUID(String.valueOf(player.getUniqueId())).get(0);
+
+					if (submission.getIsApproved()) {
+						Messenger.error(player, "Deine Anfrage wurde bereits genehmigt!");
+					} else {
+						Messenger.error(player, "Du hast bereits eine Anfrage gestellt!");
+					}
 					return;
 				}
 

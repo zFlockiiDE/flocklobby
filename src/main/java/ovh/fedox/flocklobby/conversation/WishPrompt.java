@@ -20,6 +20,7 @@ import ovh.fedox.flocklobby.FlockLobby;
 import ovh.fedox.flocklobby.model.ArmorStandSubmission;
 
 /**
+ * r
  * Inner class that handles the conversation prompt for setting the refresh time.
  */
 public class WishPrompt extends SimplePrompt {
